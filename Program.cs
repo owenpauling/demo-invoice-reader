@@ -19,6 +19,7 @@ if (!File.Exists(inputPath))
 
 var config = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false)
+    .AddJsonFile("appsettings.local.json", optional: true)
     .Build();
 
 string endpoint = config["DocumentIntelligence:Endpoint"]
