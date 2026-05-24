@@ -13,8 +13,17 @@ class DocumentTextReader : ITextReader
         byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
         var options = new AnalyzeDocumentOptions("prebuilt-read", BinaryData.FromBytes(fileBytes));
         var operation = await _client.AnalyzeDocumentAsync(WaitUntil.Completed, options);
-        return string.Join(" ", operation.Value.Pages
-            .SelectMany(p => p.Lines)
-            .Select(l => l.Content));
+        var result = operation.Value;
+
+        // Extract only spans the model identified as handwritten, so searches don't
+        // match against printed invoice data or product descriptions.
+        var handwrittenSpans = result.Styles
+            .Where(s => s.IsHandwritten == true)
+            .SelectMany(s => s.Spans)
+            .OrderBy(s => s.Offset);
+
+        return string.Join(" ", handwrittenSpans
+            .Select(s => result.Content.Substring(s.Offset, s.Length).Trim())
+            .Where(t => t.Length > 0));
     }
 }

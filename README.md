@@ -53,12 +53,13 @@ Not found (best score: 43/100, threshold: 80)
 
 #### How matching works
 
-1. **OCR pass** — the file is sent to the `prebuilt-read` model, which returns the full text of every line on every page joined into a single string.
-2. **Normalisation** — both the OCR text and the search phrase are lowercased and have whitespace collapsed, so spacing inconsistencies from the OCR don't affect the result.
-3. **Sliding window** — a window the same character length as the phrase is slid across the full text one character at a time.
-4. **Levenshtein distance** — at each window position, the [edit distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the phrase and that window is computed. Edit distance counts the minimum number of single-character insertions, deletions, or substitutions needed to turn one string into the other.
-5. **Scoring** — the distance is converted to a 0–100 score: `score = (1 - distance / windowLength) × 100`. The best score across all window positions is kept.
-6. **Threshold** — a score of 80 or above is reported as found. This tolerates roughly one wrong character per five, which covers typical OCR errors on handwriting (e.g. `"approvad"` → 92, `"appr0ved"` → 89).
+1. **OCR pass** — the file is sent to the `prebuilt-read` model, which analyses the document and tags each region of text as either printed or handwritten.
+2. **Handwriting filter** — only the spans the model identified as handwritten are extracted from the result. Printed text (invoice fields, product descriptions, etc.) is discarded entirely, so the search cannot match against it.
+3. **Normalisation** — both the handwritten text and the search phrase are lowercased and have whitespace collapsed, so spacing inconsistencies from the OCR don't affect the result.
+4. **Sliding window** — a window the same character length as the phrase is slid across the handwritten text one character at a time.
+5. **Levenshtein distance** — at each window position, the [edit distance](https://en.wikipedia.org/wiki/Levenshtein_distance) between the phrase and that window is computed. Edit distance counts the minimum number of single-character insertions, deletions, or substitutions needed to turn one string into the other.
+6. **Scoring** — the distance is converted to a 0–100 score: `score = (1 - distance / windowLength) × 100`. The best score across all window positions is kept.
+7. **Threshold** — a score of 80 or above is reported as found. This tolerates roughly one wrong character per five, which covers typical OCR errors on handwriting (e.g. `"approvad"` → 92, `"appr0ved"` → 89).
 
 ## Output
 
