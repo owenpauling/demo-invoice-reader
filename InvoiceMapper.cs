@@ -36,7 +36,8 @@ static class InvoiceMapper
         PreviousUnpaidBalance: GetCurrency(f, "PreviousUnpaidBalance"),
         Items: GetItems(f),
         PaymentDetails: GetPaymentDetails(f),
-        TaxDetails: GetTaxDetails(f)
+        TaxDetails: GetTaxDetails(f),
+        PhraseSearch: null
     );
 
     private static string? GetString(IReadOnlyDictionary<string, DocumentField> f, string key)

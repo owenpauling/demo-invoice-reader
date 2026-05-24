@@ -63,19 +63,20 @@ var jsonOptions = new JsonSerializerOptions
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 };
 
-await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(invoice, jsonOptions));
-Console.WriteLine($"Result saved to: {outputPath}");
-
 if (searchPhrase is not null)
 {
     Console.WriteLine($"Searching for: \"{searchPhrase}\"");
     ITextReader textReader = new DocumentTextReader(endpoint, apiKey);
     string text = await textReader.ReadTextAsync(inputPath);
     var (found, score) = PhraseSearcher.Search(text, searchPhrase);
+    invoice = invoice with { PhraseSearch = new PhraseSearchResult(searchPhrase, found, score, 80) };
     Console.WriteLine(found
         ? $"Found (match score: {score}/100)"
         : $"Not found (best score: {score}/100, threshold: 80)");
 }
+
+await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(invoice, jsonOptions));
+Console.WriteLine($"Result saved to: {outputPath}");
 
 return 0;
 
@@ -115,7 +116,15 @@ record InvoiceOutput(
     double? PreviousUnpaidBalance,
     List<InvoiceLineItem> Items,
     List<InvoicePaymentDetail> PaymentDetails,
-    List<InvoiceTaxDetail> TaxDetails
+    List<InvoiceTaxDetail> TaxDetails,
+    PhraseSearchResult? PhraseSearch
+);
+
+record PhraseSearchResult(
+    string Phrase,
+    bool Found,
+    int Score,
+    int Threshold
 );
 
 record InvoiceLineItem(
