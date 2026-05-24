@@ -9,7 +9,7 @@ A .NET 10 console app that extracts structured data from invoice files using the
 
 ## Configuration
 
-Add your resource endpoint and API key to `appsettings.json`:
+Create `appsettings.local.json` in the project root with your resource endpoint and API key:
 
 ```json
 {
@@ -19,6 +19,8 @@ Add your resource endpoint and API key to `appsettings.json`:
   }
 }
 ```
+
+This file is gitignored and overrides the placeholder values in `appsettings.json`.
 
 ## Usage
 
