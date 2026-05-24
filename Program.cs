@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 if (args.Length == 0)
 {
-    Console.Error.WriteLine("Usage: InvoiceReader <invoice-file-path>");
+    Console.Error.WriteLine("Usage: InvoiceReader <invoice-file-path> [--search <phrase>]");
     return 1;
 }
 
@@ -13,6 +13,19 @@ if (!File.Exists(inputPath))
 {
     Console.Error.WriteLine($"File not found: {inputPath}");
     return 1;
+}
+
+string? searchPhrase = null;
+for (int i = 1; i < args.Length; i++)
+{
+    if (args[i] == "--search" && i + 1 < args.Length)
+        searchPhrase = args[++i];
+    else
+    {
+        Console.Error.WriteLine($"Unknown argument: {args[i]}");
+        Console.Error.WriteLine("Usage: InvoiceReader <invoice-file-path> [--search <phrase>]");
+        return 1;
+    }
 }
 
 var config = new ConfigurationBuilder()
@@ -52,6 +65,18 @@ var jsonOptions = new JsonSerializerOptions
 
 await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(invoice, jsonOptions));
 Console.WriteLine($"Result saved to: {outputPath}");
+
+if (searchPhrase is not null)
+{
+    Console.WriteLine($"Searching for: \"{searchPhrase}\"");
+    ITextReader textReader = new DocumentTextReader(endpoint, apiKey);
+    string text = await textReader.ReadTextAsync(inputPath);
+    var (found, score) = PhraseSearcher.Search(text, searchPhrase);
+    Console.WriteLine(found
+        ? $"Found (match score: {score}/100)"
+        : $"Not found (best score: {score}/100, threshold: 80)");
+}
+
 return 0;
 
 // --- DTOs ---
