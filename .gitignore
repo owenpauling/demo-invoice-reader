@@ -3,3 +3,4 @@ obj/
 appsettings.local.json
 *.user
 .claude/
+*_result.json
